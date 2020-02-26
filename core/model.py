@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+import datetime as dt
 plt.switch_backend('agg')
 
 
@@ -17,24 +18,48 @@ class ANN:
         self.error_history = []
         self.n_iter_train = int(1e8)
         self.n_iter_eval = int(1e6)
-        self.learning_rate = 0.01
         self.printer = printer
-        self.viz_interval = 5000
+        self.viz_interval = 500
         self.reporting_bin_size = 100
         self.report_min = -3
         self.report_max = 0
-        self.reports_path = 'reports'
-        self.report_name = 'performance_history.png'
+        time_dir = dt.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        self.reports_path = os.path.join("reports", time_dir)
+        self.performance_report_name = "performance_history.png"
+        self.parameter_report_name = "model_parameters.txt"
+
+        # Ensure that subdirectories exist.
         try:
-            os.makedirs(reports_path)
+            os.mkdir("reports")
+        except Exception:
+            pass
+        try:
+            os.mkdir(self.reports_path)
         except Exception:
             pass
 
+        self.report_parameters()
+
+    def __str__(self):
+        str_parts = [
+            "artificial neural network",
+            "number of training iterations: " + str(self.n_iter_train),
+            "number of evaluation iterations: " + str(self.n_iter_eval),
+            "error_function:" + self.error_func.__str__()
+        ]
+        for i_layer, layer in enumerate(self.layers):
+            str_parts.append(
+                f"layer {i_layer}:" + layer.__str__()
+            )
+        return "\n".join(str_parts)
 
     def train(self, training_set):
         for i in range(self.n_iter_train):
+            print(i)
             x = next(training_set()).ravel()
+            print(x)
             y = self.forward_pass(x)
+            print(y)
 
             error = self.error_func.calc(y)
             error_d = self.error_func.calc_d(y)
@@ -90,35 +115,6 @@ class ANN:
             layer.backward_pass()
 
 
-
-    # def normalize(self, values):
-    #     min_val = self.expected_input_range[0]
-    #     max_val = self.expected_input_range[1]
-    #     values -= min_val
-    #     values /= (max_val - min_val)
-    #     return values - 0.5
-
-    #
-    # def denormalize(self, normalized_values):
-    #     min_val = self.expected_input_range[0]
-    #     max_val = self.expected_input_range[1]
-    #     normalized_values += 0.5
-    #     normalized_values *= (max_val - min_val)
-    #     return normalized_values + min_val
-
-    def forward_prop_to_layer(self, x, i_layer):
-        y = x.ravel()[np.newaxis, :]
-        for layer in self.layers[:i_layer]:
-            y = layer.forward_pass(y)
-        return y.ravel()
-
-    def forward_prop_from_layer(self, x, i_layer):
-        y = x.ravel()[np.newaxis, :]
-        for layer in self.layers[i_layer:]:
-            y = layer.forward_pass(y)
-        return y.ravel()
-
-
     def report(self):
         n_bins = int(len(self.error_history) // self.reporting_bin_size)
         smoothed_history = []
@@ -137,5 +133,16 @@ class ANN:
         ax.set_ylabel("log error")
         ax.set_ylim(ymin, ymax)
         ax.grid()
-        fig.savefig(self.report_name)
+        fig.savefig(self.performance_report_name)
         plt.close()
+
+
+    def report_parameters(self):
+        """
+        Create a human-readable summary of the model's parameters.
+        """
+        param_info = "type: " + self.__str__()
+        with open(
+            os.path.join(self.reports_path, self.parameter_report_name), "w"
+        ) as param_file:
+            param_file.write(param_info)

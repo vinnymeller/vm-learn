@@ -1,6 +1,7 @@
 import numpy as np
 from core.layers.base import BaseLayer
 from core.optimizers.SGD import SGD
+from core.initializers import Glorot
 
 class Dense(BaseLayer):
     def __init__(
@@ -9,20 +10,25 @@ class Dense(BaseLayer):
             activation_func,
             previous_layer=None,
             dropout_rate=0,
-            optimizer=None
+            optimizer=None,
+            initializer=None
     ):
         self.previous_layer = previous_layer
         self.n_inputs = self.previous_layer.y.size
         self.n_outputs = n_outputs
         self.activation_func = activation_func
         self.dropout_rate = dropout_rate
+
+        if initializer is None:
+            self.initializer = Glorot()
+        else:
+            self.initializer = initializer
         if optimizer is None:
             self.optimizer = SGD(learning_rate=0.001)
         else:
             self.optimizer = optimizer
 
-        self.weights = (np.random.sample(
-            size=(self.n_inputs + 1, self.n_outputs)) * 2 - 1)
+        self.weights = self.initializer.initialize(self.n_inputs + 1, self.n_outputs)
 
         self.reset()
         self.regularizers = []

@@ -8,6 +8,7 @@ class BaseRegularizer:
     ):
         pass
 
+
     def pre_optim_update(
             self,
             layer

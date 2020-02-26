@@ -4,6 +4,9 @@ import numpy as np
 
 class sqr:
     @staticmethod
+    def __str__():
+        return 'Mean Squared Error'
+    @staticmethod
     def calc(x):
         return np.mean(x**2)
 
@@ -13,6 +16,10 @@ class sqr:
 
 
 class abs:
+    @staticmethod
+    def __str__():
+        return 'Mean Absolute Error'
+
     @staticmethod
     def calc(x):
         return np.mean(np.abs(x))
