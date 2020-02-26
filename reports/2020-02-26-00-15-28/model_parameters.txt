@@ -1,0 +1,10 @@
+type: artificial neural network
+number of training iterations: 100000000
+number of evaluation iterations: 1000000
+error_function:Mean Squared Error
+layer 0:<core.layers.range_normalization.RangeNormalization object at 0x10e246048>
+layer 1:<core.layers.dense.Dense object at 0x10e5155f8>
+layer 2:<core.layers.dense.Dense object at 0x10e515630>
+layer 3:<core.layers.dense.Dense object at 0x10e5156d8>
+layer 4:<core.layers.dense.Dense object at 0x10e515780>
+layer 5:<core.layers.difference.Difference object at 0x10e5157b8>
