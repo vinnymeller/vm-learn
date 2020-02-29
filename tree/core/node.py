@@ -30,15 +30,20 @@ class DecisionTreeNode:
         if self.depth > self.max_depth:
             return
 
+        if len(self.data) < 2:
+            return
+
         fractions = self.data[self.y_col].value_counts().values / len(self.data)
         squared = fractions**2
         summed = np.sum(squared)
         lowest_impurity = 1 - summed
+        split_index = None
 
         for column, values in self.column_values.items():
-            for i in range(self.column_indicies[column]['min'], self.column_indicies[column]['max'] + 1):
-                left_ind = np.where(self.data[column].values < values[i])
-                right_ind = np.where(self.data[column].values >= values[i])
+            for i in range(self.column_indicies[column]['min'], self.column_indicies[column]['max']):
+                split_try = (values[i] + values[i + 1]) / 2
+                left_ind = np.where(self.data[column].values < split_try)
+                right_ind = np.where(self.data[column].values >= split_try)
 
                 left_frac1 = np.sum(self.data[self.y_col].values[left_ind])/len(left_ind[0])
                 left_frac2 = 1-left_frac1
@@ -53,27 +58,28 @@ class DecisionTreeNode:
                 if gini < lowest_impurity:
                     lowest_impurity = gini
                     self.split_col = column
-                    self.split_val = i
+                    self.split_val = split_try
+                    split_index = i
 
 
         if self.split_val is not None:
             left_indicies = self.column_indicies.copy()
-            left_indicies[self.split_col]['max'] = self.split_val - 1
+            left_indicies[self.split_col]['max'] = split_index
             self.left = DecisionTreeNode(
                 depth=self.depth+1,
                 max_depth=self.max_depth,
-                data=self.data.loc[self.data[self.split_col] < self.column_values[self.split_col][self.split_val]],
+                data=self.data.loc[self.data[self.split_col] < self.column_values[self.split_col][split_index]],
                 column_values=self.column_values,
                 column_indicies=left_indicies,
                 y_col=self.y_col
             )
             self.left.split()
             right_indicies = self.column_indicies.copy()
-            right_indicies[self.split_col]['min'] = self.split_val + 1
+            right_indicies[self.split_col]['min'] = split_index + 1
             self.right = DecisionTreeNode(
                 depth=self.depth+1,
                 max_depth=self.max_depth,
-                data=self.data.loc[self.data[self.split_col] >= self.column_values[self.split_col][self.split_val]],
+                data=self.data.loc[self.data[self.split_col] >= self.column_values[self.split_col][split_index + 1]],
                 column_values=self.column_values,
                 column_indicies=right_indicies,
                 y_col=self.y_col
